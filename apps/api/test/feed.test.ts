@@ -17,7 +17,7 @@ afterEach(async () => {
 });
 
 describe('GET /users/:username/feed/tweets', () => {
-  test('returns the 30 newest followed-user tweets without password hashes', async () => {
+  test('returns the 30 newest followed-user tweets without a token or password hashes', async () => {
     const { db, pool } = createDatabase();
     pools.push(pool);
     const app = await buildApp({ db });
@@ -133,7 +133,7 @@ describe('GET /users/:username/feed/tweets', () => {
     expect(JSON.stringify(payload)).not.toContain('password');
   });
 
-  test('returns 404 when the requested username does not exist', async () => {
+  test('returns 404 without a token when the requested username does not exist', async () => {
     const { db, pool } = createDatabase();
     pools.push(pool);
     const app = await buildApp({ db });

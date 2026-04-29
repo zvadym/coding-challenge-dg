@@ -3,6 +3,7 @@ import { desc, eq } from 'drizzle-orm';
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { feedTweetsResponseSchema, healthResponseSchema } from '@dgchallenge/shared';
+import { fakeJwtGuard } from './auth/fakeJwt';
 import { createDatabase, type Database } from './db/client';
 import { followers, tweets, users } from './db/schema';
 
@@ -45,6 +46,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   app.get<{ Params: { username: string } }>(
     '/users/:username/feed/tweets',
+    {
+      preHandler: fakeJwtGuard
+    },
     async (request, reply) => {
       const db = getDatabase();
       const [user] = await db
