@@ -9,6 +9,26 @@ import { followers, tweets, users } from '../src/db/schema';
 const apps: FastifyInstance[] = [];
 const pools: Array<{ end: () => Promise<void> }> = [];
 
+type FeedFixture = {
+  app: FastifyInstance;
+  bob: {
+    id: number;
+    username: string;
+  };
+  carol: {
+    id: number;
+    username: string;
+  };
+  tieLow: {
+    id: number;
+    text: string;
+  };
+  tieHigh: {
+    id: number;
+    text: string;
+  };
+};
+
 afterEach(async () => {
   await Promise.all(apps.map((app) => app.close()));
   await Promise.all(pools.map((pool) => pool.end()));
@@ -17,7 +37,7 @@ afterEach(async () => {
 });
 
 describe('GET /users/:username/feed/tweets', () => {
-  test('returns the 30 newest followed-user tweets without a token or password hashes', async () => {
+  async function createFeedFixture(): Promise<FeedFixture> {
     const { db, pool } = createDatabase();
     pools.push(pool);
     const app = await buildApp({ db });
@@ -103,6 +123,18 @@ describe('GET /users/:username/feed/tweets', () => {
       }))
     ]);
 
+    return {
+      app,
+      bob,
+      carol,
+      tieLow,
+      tieHigh
+    };
+  }
+
+  test('returns the 30 newest followed-user tweets without a token or password hashes', async () => {
+    const { app, bob, carol, tieLow, tieHigh } = await createFeedFixture();
+
     const response = await app.inject({
       method: 'GET',
       url: `/users/${bob.username}/feed/tweets`
@@ -111,6 +143,8 @@ describe('GET /users/:username/feed/tweets', () => {
     expect(response.statusCode).toBe(200);
     const payload = response.json<FeedTweetsResponse>();
     expect(payload.tweets).toHaveLength(30);
+    expect(payload.hasMore).toBe(true);
+    expect(payload.nextCursor).toEqual(expect.any(String));
     expect(payload.tweets[0]).toMatchObject({
       id: tieHigh.id,
       text: tieHigh.text,
@@ -131,6 +165,73 @@ describe('GET /users/:username/feed/tweets', () => {
     expect(texts).not.toContain('eve unfollowed newer tweet');
     expect(texts).not.toContain('followed older 28');
     expect(JSON.stringify(payload)).not.toContain('password');
+  });
+
+  test('returns the next page for a valid cursor', async () => {
+    const { app, bob } = await createFeedFixture();
+
+    const firstResponse = await app.inject({
+      method: 'GET',
+      url: `/users/${bob.username}/feed/tweets?limit=10`
+    });
+    const firstPage = firstResponse.json<FeedTweetsResponse>();
+
+    const secondResponse = await app.inject({
+      method: 'GET',
+      url: `/users/${bob.username}/feed/tweets?limit=10&cursor=${encodeURIComponent(
+        firstPage.nextCursor ?? ''
+      )}`
+    });
+
+    expect(secondResponse.statusCode).toBe(200);
+    const secondPage = secondResponse.json<FeedTweetsResponse>();
+    expect(secondPage.tweets).toHaveLength(10);
+    expect(secondPage.hasMore).toBe(true);
+    expect(secondPage.nextCursor).toEqual(expect.any(String));
+    expect(secondPage.tweets[0]?.text).toBe('followed older 8');
+    expect(secondPage.tweets.map((tweet) => tweet.id)).not.toContain(firstPage.tweets[0]?.id);
+  });
+
+  test('returns the final page without a cursor when there are no more tweets', async () => {
+    const { app, bob } = await createFeedFixture();
+    let cursor: string | null = null;
+    let finalPage: FeedTweetsResponse = {
+      tweets: [],
+      nextCursor: null,
+      hasMore: false
+    };
+
+    for (let page = 0; page < 4; page += 1) {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/${bob.username}/feed/tweets?limit=10${
+          cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
+        }`
+      });
+
+      finalPage = response.json<FeedTweetsResponse>();
+      cursor = finalPage.nextCursor;
+    }
+
+    expect(finalPage?.tweets).toHaveLength(3);
+    expect(finalPage?.hasMore).toBe(false);
+    expect(finalPage?.nextCursor).toBeNull();
+  });
+
+  test('rejects invalid pagination query values', async () => {
+    const { app, bob } = await createFeedFixture();
+
+    const invalidLimit = await app.inject({
+      method: 'GET',
+      url: `/users/${bob.username}/feed/tweets?limit=31`
+    });
+    const invalidCursor = await app.inject({
+      method: 'GET',
+      url: `/users/${bob.username}/feed/tweets?cursor=not-a-cursor`
+    });
+
+    expect(invalidLimit.statusCode).toBe(400);
+    expect(invalidCursor.statusCode).toBe(400);
   });
 
   test('returns 404 without a token when the requested username does not exist', async () => {
