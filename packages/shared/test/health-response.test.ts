@@ -19,6 +19,8 @@ describe('feedTweetsResponseSchema', () => {
   test('accepts the followed tweets feed response contract', () => {
     expect(
       feedTweetsResponseSchema.parse({
+        hasMore: false,
+        nextCursor: null,
         tweets: [
           {
             id: 1,
@@ -34,6 +36,8 @@ describe('feedTweetsResponseSchema', () => {
         ]
       })
     ).toEqual({
+      hasMore: false,
+      nextCursor: null,
       tweets: [
         {
           id: 1,

@@ -20,7 +20,9 @@ export const feedTweetSchema = z.object({
 });
 
 export const feedTweetsResponseSchema = z.object({
-  tweets: z.array(feedTweetSchema)
+  tweets: z.array(feedTweetSchema),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean()
 });
 
 export type FeedTweet = z.infer<typeof feedTweetSchema>;

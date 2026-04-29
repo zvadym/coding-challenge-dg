@@ -1,12 +1,17 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f7f8f4;
-  --foreground: #151713;
-  --muted: #60655b;
+  --background: #f5f7fa;
+  --foreground: #172026;
+  --muted: #5b6571;
   --panel: #ffffff;
-  --border: #d7ddcf;
-  --accent: #176b5b;
+  --border: #d7dde5;
+  --accent: #0d766e;
+  --accent-strong: #0f3d3e;
+  --avatar: #d8f1ed;
+  --danger: #b42318;
+  --focus: #f59e0b;
+  --skeleton: #e6ebf0;
 }
 
 * {
@@ -22,10 +27,34 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Avenir Next', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: rgb(13 118 110 / 18%);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+@keyframes feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tweet-card-new {
+  animation: feed-in 520ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tweet-card-new {
+    animation: none;
+  }
 }

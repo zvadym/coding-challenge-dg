@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Coding Challenge DG',
-  description: 'Interview coding challenge scaffold'
+  title: 'Bob’s Feed',
+  description: 'A paginated feed for Bob’s followed authors'
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
