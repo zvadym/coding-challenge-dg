@@ -7,10 +7,10 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
-      '.next/**',
-      'coverage/**',
-      'dist/**',
-      'node_modules/**',
+      '**/.next/**',
+      '**/coverage/**',
+      '**/dist/**',
+      '**/node_modules/**',
       'apps/api/drizzle/meta/**'
     ]
   },
@@ -33,9 +33,15 @@ export default tseslint.config(
     plugins: {
       '@next/next': nextPlugin
     },
+    settings: {
+      next: {
+        rootDir: 'apps/web/'
+      }
+    },
     rules: {
       ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs['core-web-vitals'].rules
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      '@next/next/no-html-link-for-pages': 'off'
     }
   },
   prettier
