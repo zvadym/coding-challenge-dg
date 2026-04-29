@@ -1,0 +1,25 @@
+import '../env';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+
+export type Database = ReturnType<typeof drizzle>;
+
+export const defaultDatabaseUrl = 'postgres://dgchallenge:dgchallenge@localhost:5432/dgchallenge';
+
+export function createDatabase(databaseUrl = process.env.DATABASE_URL ?? defaultDatabaseUrl): {
+  db: Database;
+  pool: Pool;
+} {
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required');
+  }
+
+  const pool = new Pool({
+    connectionString: databaseUrl
+  });
+
+  return {
+    db: drizzle(pool),
+    pool
+  };
+}

@@ -1,0 +1,32 @@
+{
+  "name": "coding-challenge-dg",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "bun --filter @dgchallenge/api dev",
+    "dev:web": "bun --filter @dgchallenge/web dev",
+    "build": "bun --filter @dgchallenge/shared build && bun --filter @dgchallenge/api build && bun --filter @dgchallenge/web build",
+    "lint": "bun --filter @dgchallenge/shared lint && bun --filter @dgchallenge/api lint && bun --filter @dgchallenge/web lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "bun --filter @dgchallenge/shared typecheck && bun --filter @dgchallenge/api typecheck && bun --filter @dgchallenge/web typecheck",
+    "test": "bun --filter @dgchallenge/shared test && bun --filter @dgchallenge/api test",
+    "db:generate": "bun --filter @dgchallenge/api db:generate",
+    "db:migrate": "bun --filter @dgchallenge/api db:migrate"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.3",
+    "@eslint/js": "^9.39.1",
+    "@next/eslint-plugin-next": "^16.0.7",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0"
+  }
+}

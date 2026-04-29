@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dgchallenge
+          POSTGRES_PASSWORD: dgchallenge
+          POSTGRES_DB: dgchallenge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dgchallenge -d dgchallenge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://dgchallenge:dgchallenge@localhost:5432/dgchallenge_test
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      WEB_ORIGIN: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Check formatting
+        run: bun run format:check
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Apply migrations
+        run: bun run db:migrate
+
+      - name: Test
+        run: bun run test
+
+      - name: Build
+        run: bun run build
